@@ -43,6 +43,7 @@ namespace NancyTest.Server
             //{
             //    await context.Response.WriteAsync("Hello World!");
             //});
+            app.UseStaticFiles();
             app.UseOwin().UseNancy(x => x.Bootstrapper = new ServerBootstrapper(Services));
         }
     }

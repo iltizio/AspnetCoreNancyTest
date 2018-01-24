@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using Autofac.Features.Indexed;
 using Nancy;
 using Nancy.Responses;
+using NancyTest.Server.Models;
 using NancyTest.Server.Services;
 
 namespace NancyTest.Server.NancyModules
@@ -18,6 +20,28 @@ namespace NancyTest.Server.NancyModules
             SayFormalHello();
 
             SayInformalHello();
+
+            Get("/test", args =>
+            {
+                var artists = new ArtistSearchModel
+                {
+                    Artists = new List<Artist>
+                    {
+                        new Artist
+                        {
+                            Name = "Queen",
+                            BannerImgUri = "~/img/queen.jpg"
+                        },
+                        new Artist
+                        {
+                            Name = "Yes",
+                            BannerImgUri = "~/img/yes.jpg"
+                        }
+                    }
+                };
+
+                return View["test", artists];
+            });
         }
 
         private void SayInformalHello()
