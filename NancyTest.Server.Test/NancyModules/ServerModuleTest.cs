@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,10 +24,11 @@ namespace NancyTest.Server.Test.NancyModules
         {
             //Arrange
             var fakeHelloServices = Mock.Of<IIndex<string, IHelloService>>();
+            var fakeArtistSearchService = Mock.Of<IArtistSearchService>();
 
             var bootstrapper = new ConfigurableBootstrapper(with =>
             {
-                var module = new ServerModule(fakeHelloServices);
+                var module = new ServerModule(fakeHelloServices, fakeArtistSearchService);
                 with.Module(module);
             });
 
@@ -48,10 +50,11 @@ namespace NancyTest.Server.Test.NancyModules
         {
             //Arrange
             var fakeHelloServices = Mock.Of<IIndex<string, IHelloService>>();
+            var fakeArtistSearchService = Mock.Of<IArtistSearchService>();
 
             var bootstrapper = new ConfigurableBootstrapper(with =>
             {
-                var module = new ServerModule(fakeHelloServices);
+                var module = new ServerModule(fakeHelloServices, fakeArtistSearchService);
                 with.Module(module);
             });
 
@@ -73,10 +76,11 @@ namespace NancyTest.Server.Test.NancyModules
         {
             //Arrange
             var fakeHelloServices = Mock.Of<IIndex<string, IHelloService>>();
+            var fakeArtistSearchService = Mock.Of<IArtistSearchService>();
 
             var bootstrapper = new ConfigurableBootstrapper(with =>
             {
-                var module = new ServerModule(fakeHelloServices);
+                var module = new ServerModule(fakeHelloServices, fakeArtistSearchService);
                 with.Module(module);
             });
 
@@ -106,9 +110,11 @@ namespace NancyTest.Server.Test.NancyModules
             Mock.Get(fakeHelloServices).Setup(it => it.TryGetValue(It.IsAny<string>(), out fakeHelloService))
                 .Returns(true);
 
+            var fakeArtistSearchService = Mock.Of<IArtistSearchService>();
+
             var bootstrapper = new ConfigurableBootstrapper(with =>
             {
-                var module = new ServerModule(fakeHelloServices);
+                var module = new ServerModule(fakeHelloServices, fakeArtistSearchService);
                 with.Module(module);
             });
 
@@ -139,9 +145,11 @@ namespace NancyTest.Server.Test.NancyModules
             Mock.Get(fakeHelloServices).Setup(it => it.TryGetValue(It.IsAny<string>(), out fakeHelloService))
                 .Returns(false);
 
+            var fakeArtistSearchService = Mock.Of<IArtistSearchService>();
+
             var bootstrapper = new ConfigurableBootstrapper(with =>
             {
-                var module = new ServerModule(fakeHelloServices);
+                var module = new ServerModule(fakeHelloServices, fakeArtistSearchService);
                 with.Module(module);
             });
 
@@ -172,9 +180,11 @@ namespace NancyTest.Server.Test.NancyModules
             Mock.Get(fakeHelloServices).Setup(it => it.TryGetValue(It.IsAny<string>(), out fakeHelloService))
                 .Returns(true);
 
+            var fakeArtistSearchService = Mock.Of<IArtistSearchService>();
+
             var bootstrapper = new ConfigurableBootstrapper(with =>
             {
-                var module = new ServerModule(fakeHelloServices);
+                var module = new ServerModule(fakeHelloServices, fakeArtistSearchService);
                 with.Module(module);
             });
 
@@ -206,9 +216,11 @@ namespace NancyTest.Server.Test.NancyModules
             Mock.Get(fakeHelloServices).Setup(it => it.TryGetValue(It.IsAny<string>(), out fakeHelloService))
                 .Returns(false);
 
+            var fakeArtistSearchService = Mock.Of<IArtistSearchService>();
+
             var bootstrapper = new ConfigurableBootstrapper(with =>
             {
-                var module = new ServerModule(fakeHelloServices);
+                var module = new ServerModule(fakeHelloServices, fakeArtistSearchService);
                 with.Module(module);
             });
 
@@ -230,23 +242,45 @@ namespace NancyTest.Server.Test.NancyModules
         }
 
         [Test]
-        public async Task ServerModule_TestView_Ok()
+        public async Task ServerModule_SearchArtist_Ok()
         {
             //Arrange
+            var artistName = "Test";
+
             var fakeHelloServices = Mock.Of<IIndex<string, IHelloService>>();
+
+            var fakeArtistSerachResult = new ArtistSearchModel
+            {
+                Artists = new List<Artist>
+                {
+                    new Artist
+                    {
+                        Name = "Artist1",
+                        BannerImgUri = "/img1.png"
+                    },
+                    new Artist
+                    {
+                        Name = "Artist2",
+                        BannerImgUri = "/img2.png"
+                    }
+                }
+            };
+            var fakeArtistSearchService = Mock.Of<IArtistSearchService>();
+            Mock.Get(fakeArtistSearchService).Setup(it => it.Serach(It.IsAny<string>()))
+                .Returns(fakeArtistSerachResult);
 
             var bootstrapper = new ConfigurableBootstrapper(with =>
             {
                 with.RootPathProvider<TestingRootPathProvider>();
                 with.ViewFactory<TestingViewFactory>();
-                var module = new ServerModule(fakeHelloServices);
+                var module = new ServerModule(fakeHelloServices, fakeArtistSearchService);
                 with.Module(module);
             });
 
             var browser = new Browser(bootstrapper, defaults: to => to.Accept("application/json"));
 
             //Act
-            var result = await browser.Get("/test", with =>
+            var result = await browser.Get($"/searchArtist/{artistName}", with =>
             {
                 with.HttpRequest();
                 with.Header("accept", "text/html");
@@ -256,6 +290,8 @@ namespace NancyTest.Server.Test.NancyModules
             result.StatusCode.Should().Be(HttpStatusCode.OK);
             result.GetViewName().Should().Be("test");
             result.GetModel<ArtistSearchModel>().Artists.Any().Should().BeTrue();
+            result.GetModel<ArtistSearchModel>().Should().Be(fakeArtistSerachResult);
+            Mock.Get(fakeArtistSearchService).Verify(it => it.Serach(It.Is<string>(p => p == artistName)), Times.Once);
         }
     }
 

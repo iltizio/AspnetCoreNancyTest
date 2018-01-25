@@ -11,9 +11,12 @@ namespace NancyTest.Server.NancyModules
     public class ServerModule : NancyModule
     {
         private readonly IIndex<string, IHelloService> _availableHelloServices;
-        public ServerModule(IIndex<string, IHelloService> availableHelloServices)
+        private readonly IArtistSearchService _artistSearchService;
+
+        public ServerModule(IIndex<string, IHelloService> availableHelloServices, IArtistSearchService artistSearchService)
         {
             _availableHelloServices = availableHelloServices;
+            _artistSearchService = artistSearchService;
 
             HelloWorld();
 
@@ -21,24 +24,14 @@ namespace NancyTest.Server.NancyModules
 
             SayInformalHello();
 
-            Get("/test", args =>
+            SearchArtist();
+        }
+
+        private void SearchArtist()
+        {
+            Get("/searchArtist/{artistName}", args =>
             {
-                var artists = new ArtistSearchModel
-                {
-                    Artists = new List<Artist>
-                    {
-                        new Artist
-                        {
-                            Name = "Queen",
-                            BannerImgUri = "~/img/queen.jpg"
-                        },
-                        new Artist
-                        {
-                            Name = "Yes",
-                            BannerImgUri = "~/img/yes.jpg"
-                        }
-                    }
-                };
+                var artists = _artistSearchService.Serach(args.artistName);
 
                 return View["test", artists];
             });

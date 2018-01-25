@@ -22,6 +22,8 @@ namespace NancyTest.Server
             {
                 builder.Register(d => new FormalHelloService()).Keyed<IHelloService>("Formal").InstancePerLifetimeScope();
                 builder.Register(d => new InformalHelloService()).Keyed<IHelloService>("Informal").InstancePerLifetimeScope();
+                builder.RegisterType<StaticArtistSearchService>().AsImplementedInterfaces().InstancePerDependency();
+
                 builder.Populate(_services);
             });
         }

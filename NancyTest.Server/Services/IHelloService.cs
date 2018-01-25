@@ -1,4 +1,7 @@
-﻿namespace NancyTest.Server.Services
+﻿using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
+
+namespace NancyTest.Server.Services
 {
     public interface IHelloService
     {
