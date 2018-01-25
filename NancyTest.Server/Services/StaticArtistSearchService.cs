@@ -8,7 +8,7 @@ namespace NancyTest.Server.Services
         public ArtistSearchModel Serach(string artistName)
         {
             return new ArtistSearchModel
-                {
+            {
                 Artists = new List<Artist>
                 {
                     new Artist
